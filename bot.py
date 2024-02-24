@@ -50,7 +50,7 @@ async def advert_dp(message:Message,state:FSMContext):
 
 @dp.message(Adverts.adverts)
 async def send_advert(message:Message,state:FSMContext):
-    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    
     message_id = message.message_id
     from_chat_id = message.from_user.id
     users = allusers_id()
@@ -61,10 +61,10 @@ async def send_advert(message:Message,state:FSMContext):
             count += 1
         except:
             pass
-        time.sleep(1)
+        time.sleep(0.5)
     
     await message.answer(f"Reklama {count}ta foydalanuvchiga yuborildi")
-    await state.clear
+    await state.clear()
 
 
 
@@ -89,6 +89,7 @@ async def off_startup_notify(bot: Bot):
 
 
 async def main() -> None:
+    global bot
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     users_db() #database yaratildi
     await dp.start_polling(bot)

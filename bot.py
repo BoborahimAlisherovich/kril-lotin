@@ -2,23 +2,30 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart,Command
 from aiogram import F
-from aiogram.types import Message
+from aiogram.types import Message,CallbackQuery
 from data import config
 import asyncio
 import logging
 import sys
+from menucommands.set_bot_commands  import set_default_commands
 from baza.create import users_db
 from baza.add_user import add as add_user
 from filters.admin import IsBotAdminFilter
+from filters.check_sub_channel import IsCheckSubChannels
 from keyboard_buttons import admin_keyboard
 from baza.all_users import allusers,allusers_id
 from aiogram.fsm.context import FSMContext #new
 from states.reklama import Adverts
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import time 
 ADMINS = config.ADMINS
 TOKEN = config.BOT_TOKEN
+CHANNELS = config.CHANNELS
 
 dp = Dispatcher()
+
+
 
 
 @dp.message(CommandStart())
@@ -30,6 +37,19 @@ async def start_command(message:Message):
         await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
     except:
         await message.answer(text="Assalomu alaykum")
+
+
+@dp.message(IsCheckSubChannels())
+async def kanalga_obuna(message:Message):
+    text = ""
+    inline_channel = InlineKeyboardBuilder()
+    for index,channel in enumerate(CHANNELS):
+        ChatInviteLink = await bot.create_chat_invite_link(channel)
+        inline_channel.add(InlineKeyboardButton(text=f"{index+1}-kanal",url=ChatInviteLink.invite_link))
+    inline_channel.adjust(1,repeat=True)
+    button = inline_channel.as_markup()
+    await message.answer(f"{text} kanallarga azo bo'ling",reply_markup=button)
+
 
 
 @dp.message(Command("admin"),IsBotAdminFilter(ADMINS))
@@ -87,12 +107,22 @@ async def off_startup_notify(bot: Bot):
             logging.exception(err)
 
 
+def setup_middlewares(dispatcher: Dispatcher, bot: Bot) -> None:
+    """MIDDLEWARE"""
+    from middlewares.throttling import ThrottlingMiddleware
+
+    # Spamdan himoya qilish uchun klassik ichki o'rta dastur. So'rovlar orasidagi asosiy vaqtlar 0,5 soniya
+    dispatcher.message.middleware(ThrottlingMiddleware(slow_mode_delay=0.5))
+
+
 
 async def main() -> None:
     global bot
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     users_db() #database yaratildi
+    await set_default_commands(bot)
     await dp.start_polling(bot)
+    setup_middlewares(dispatcher=dp, bot=bot)
 
 
 

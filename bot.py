@@ -8,12 +8,10 @@ import asyncio
 import logging
 import sys
 from menucommands.set_bot_commands  import set_default_commands
-from baza.create import users_db
-from baza.add_user import add as add_user
+from baza.sqlite import Database
 from filters.admin import IsBotAdminFilter
 from filters.check_sub_channel import IsCheckSubChannels
 from keyboard_buttons import admin_keyboard
-from baza.all_users import allusers,allusers_id
 from aiogram.fsm.context import FSMContext #new
 from states.reklama import Adverts
 from aiogram.types import InlineKeyboardButton
@@ -33,7 +31,7 @@ async def start_command(message:Message):
     full_name = message.from_user.full_name
     telegram_id = message.from_user.id
     try:
-        add_user(full_name=full_name,telegram_id=telegram_id)
+        db.add_user(full_name=full_name,telegram_id=telegram_id)
         await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
     except:
         await message.answer(text="Assalomu alaykum")
@@ -59,7 +57,7 @@ async def is_admin(message:Message):
 
 @dp.message(F.text=="Foydalanuvchilar soni",IsBotAdminFilter(ADMINS))
 async def users_count(message:Message):
-    counts = allusers()
+    counts = db.count_users()
     text = f"Botimizda {counts[0]} ta foydalanuvchi bor"
     await message.answer(text=text)
 
@@ -73,7 +71,7 @@ async def send_advert(message:Message,state:FSMContext):
     
     message_id = message.message_id
     from_chat_id = message.from_user.id
-    users = allusers_id()
+    users = db.all_users_id()
     count = 0
     for user in users:
         try:
@@ -117,9 +115,10 @@ def setup_middlewares(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def main() -> None:
-    global bot
+    global bot,db
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
-    users_db() #database yaratildi
+    db = Database(path_to_db="data/main.db")
+    db.create_table_users()
     await set_default_commands(bot)
     await dp.start_polling(bot)
     setup_middlewares(dispatcher=dp, bot=bot)
@@ -129,4 +128,5 @@ async def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+
     asyncio.run(main())

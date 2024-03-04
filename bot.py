@@ -14,8 +14,11 @@ from filters.check_sub_channel import IsCheckSubChannels
 from keyboard_buttons import admin_keyboard
 from aiogram.fsm.context import FSMContext #new
 from states.reklama import Adverts
+from states.register import Register
+from keyboard_buttons.main import user_button
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from keyboard_buttons.register import contact_button
 import time 
 ADMINS = config.ADMINS
 TOKEN = config.BOT_TOKEN
@@ -24,17 +27,52 @@ CHANNELS = config.CHANNELS
 dp = Dispatcher()
 
 
-
-
 @dp.message(CommandStart())
-async def start_command(message:Message):
-    full_name = message.from_user.full_name
-    telegram_id = message.from_user.id
+async def start_command(message:Message,state:FSMContext):   
     try:
-        db.add_user(full_name=full_name,telegram_id=telegram_id)
-        await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
+        telegram_id = message.from_user.id
+        ids = [id[0] for id in await db.all_users_id()]
+        if telegram_id in ids:
+            await message.answer(text="Assalomu alaykum",reply_markup=user_button)
+        else:
+            await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz\n Ro'yhatdan o'tish uchun Ismingizni kiriting ")
+            await state.set_state(Register.first_name)          
     except:
-        await message.answer(text="Assalomu alaykum")
+        await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz\n Ro'yhatdan o'tish uchun Ismingizni kiriting ")
+        await state.set_state(Register.first_name)
+
+@dp.message(F.text,Register.first_name)
+async def first_name_register(message:Message,state:FSMContext):
+    first_name = message.text
+    
+    await state.update_data(first_name=first_name)
+    await state.set_state(Register.last_name)
+    await message.answer(text="familyangizni kriting")
+
+
+@dp.message(F.text,Register.last_name)
+async def last_name_register(message:Message,state:FSMContext):
+    last_name = message.text
+    await state.update_data(last_name = last_name)
+    await state.set_state(Register.phone_number)
+
+    await message.answer(text="Kontakt yuboring",reply_markup=contact_button)
+
+
+@dp.message(F.contact,Register.phone_number)
+async def phone_number_register(message:Message,state:FSMContext):
+    data = await state.get_data()
+    
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    phone_number = message.contact.phone_number
+    telegram_id = message.from_user.id
+
+    await state.clear()
+    await db.add_user(telegram_id=telegram_id,first_name=first_name,last_name=last_name,phone_number=phone_number)
+    await message.answer(text="Siz muvaffaqiyatli tarzda ro'yhatdan o'tdingiz\nBotimizdan foydalanishingiz mumkin",reply_markup=user_button)
+
+
 
 
 @dp.message(IsCheckSubChannels())
@@ -50,6 +88,9 @@ async def kanalga_obuna(message:Message):
 
 
 
+
+
+#Admin panel uchun
 @dp.message(Command("admin"),IsBotAdminFilter(ADMINS))
 async def is_admin(message:Message):
     await message.answer(text="Admin menu",reply_markup=admin_keyboard.admin_button)
@@ -71,7 +112,7 @@ async def send_advert(message:Message,state:FSMContext):
     
     message_id = message.message_id
     from_chat_id = message.from_user.id
-    users = db.all_users_id()
+    users = await db.all_users_id()
     count = 0
     for user in users:
         try:
@@ -119,6 +160,7 @@ async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     db = Database(path_to_db="data/main.db")
     db.create_table_users()
+    db.create_table_tasks()
     await set_default_commands(bot)
     await dp.start_polling(bot)
     setup_middlewares(dispatcher=dp, bot=bot)

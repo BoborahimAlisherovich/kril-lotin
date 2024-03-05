@@ -30,10 +30,7 @@ class Database:
     def create_table_users(self):
         sql = """
         CREATE TABLE IF NOT EXISTS USERS(
-        id INTEGER PRIMARY KEY,
-        first_name VARCHAR(50),
-        last_name VARCHAR(50),
-        phone_number VARCHAR(13),
+        full_name TEXT,
         telegram_id NUMBER unique );
               """
         self.execute(sql, commit=True)
@@ -46,19 +43,13 @@ class Database:
         return sql, tuple(parameters.values())
 
 
-    async def add_user(self, telegram_id:int, first_name:str,last_name:str,phone_number:str):
-        sql = """
-        INSERT INTO Users(first_name,last_name,phone_number,telegram_id) VALUES(?, ?, ?, ?)
-        """
-        self.execute(sql, parameters=(first_name,last_name,phone_number,telegram_id), commit=True)
+    def add_user(self, telegram_id:int, full_name:str):
 
-    async def update_user(self, telegram_id:int, first_name:str,last_name:str,phone_number:str):
         sql = """
-        UPDATE Users
-        SET first_name = ?, last_name = ?, phone_number = ?
-        WHERE telegram_id = ?;
+        INSERT INTO Users(telegram_id, full_name) VALUES(?, ?)
         """
-        self.execute(sql, parameters=(first_name,last_name,phone_number,telegram_id), commit=True)
+        self.execute(sql, parameters=(telegram_id, full_name), commit=True)
+
 
     def select_all_users(self):
         sql = """
@@ -80,9 +71,8 @@ class Database:
     def delete_users(self):
         self.execute("DELETE FROM Users WHERE TRUE", commit=True)
     
-    async def all_users_id(self):
+    def all_users_id(self):
         return self.execute("SELECT telegram_id FROM Users;", fetchall=True)
-    
 
 
 def logger(statement):

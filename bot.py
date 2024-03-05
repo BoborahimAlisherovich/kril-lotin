@@ -27,17 +27,14 @@ dp = Dispatcher()
 
 
 @dp.message(CommandStart())
-async def start_command(message:Message,state:FSMContext):   
+async def start_command(message:Message):
+    full_name = message.from_user.full_name
+    telegram_id = message.from_user.id
     try:
-        telegram_id = message.from_user.id
-        ids = [id[0] for id in await db.all_users_id()]
-        if telegram_id in ids:
-            await message.answer(text="Assalomu alaykum")
-        else:
-            await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
-    except:
+        db.add_user(full_name=full_name,telegram_id=telegram_id)
         await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
-
+    except:
+        await message.answer(text="Assalomu alaykum")
 
 
 @dp.message(IsCheckSubChannels())

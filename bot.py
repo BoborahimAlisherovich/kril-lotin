@@ -116,7 +116,7 @@ async def off_startup_notify(bot: Bot):
 async def main() -> None:
     global bot,db
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
-    db = Database(path_to_db="data/main.db")
+    db = Database(path_to_db="main.db")
     db.create_table_users()
     await set_default_commands(bot)
     dp.message.middleware(ThrottlingMiddleware(slow_mode_delay=0.5))

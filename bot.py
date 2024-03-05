@@ -15,10 +15,11 @@ from keyboard_buttons import admin_keyboard
 from aiogram.fsm.context import FSMContext
 from middlewares.throttling import ThrottlingMiddleware #new
 from states.reklama import Adverts
-from states.register import Register
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import time 
+from criltolatin import transliterate
+
 ADMINS = config.ADMINS
 TOKEN = config.BOT_TOKEN
 CHANNELS = config.CHANNELS
@@ -86,6 +87,24 @@ async def send_advert(message:Message,state:FSMContext):
     
     await message.answer(f"Reklama {count}ta foydalanuvchiga yuborildi")
     await state.clear()
+
+
+@dp.message(Command("count"))
+async def all_users_count(message:Message):
+    counts = db.count_users()
+    text = f"Botimizda {counts[0]} ta foydalanuvchi bor"
+    await message.answer(text=text)
+
+
+
+
+@dp.message(F.text)
+async def latin_to_cril(message:Message):
+    text = message.text
+
+    result = transliterate(text)
+
+    await message.answer(result)
 
 
 

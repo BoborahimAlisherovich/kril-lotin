@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart,Command
 from aiogram import F
-from aiogram.types import Message,CallbackQuery
+from aiogram.types import Message
 from data import config
 import asyncio
 import logging
@@ -12,7 +12,8 @@ from baza.sqlite import Database
 from filters.admin import IsBotAdminFilter
 from filters.check_sub_channel import IsCheckSubChannels
 from keyboard_buttons import admin_keyboard
-from aiogram.fsm.context import FSMContext #new
+from aiogram.fsm.context import FSMContext
+from middlewares.throttling import ThrottlingMiddleware #new
 from states.reklama import Adverts
 from states.register import Register
 from keyboard_buttons.main import user_button
@@ -146,13 +147,6 @@ async def off_startup_notify(bot: Bot):
             logging.exception(err)
 
 
-def setup_middlewares(dispatcher: Dispatcher, bot: Bot) -> None:
-    """MIDDLEWARE"""
-    from middlewares.throttling import ThrottlingMiddleware
-
-    # Spamdan himoya qilish uchun klassik ichki o'rta dastur. So'rovlar orasidagi asosiy vaqtlar 0,5 soniya
-    dispatcher.message.middleware(ThrottlingMiddleware(slow_mode_delay=0.5))
-
 
 
 async def main() -> None:
@@ -160,10 +154,10 @@ async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     db = Database(path_to_db="data/main.db")
     db.create_table_users()
-    db.create_table_tasks()
     await set_default_commands(bot)
+    dp.message.middleware(ThrottlingMiddleware(slow_mode_delay=0.5))
     await dp.start_polling(bot)
-    setup_middlewares(dispatcher=dp, bot=bot)
+    
 
 
 

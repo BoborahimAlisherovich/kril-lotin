@@ -85,28 +85,6 @@ class Database:
     
 
 
-    #Masalalar
-    def create_table_tasks(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS Task(
-        id INTEGER PRIMARY KEY,
-        task_name VARCHAR(50),
-        task_admin_id NUMBER,
-        region VARCHAR(20),
-                      """
-        self.execute(sql, commit=True)
-
-
-    #task yaratish
-    async def add_task(self, task_name:str,region:str, task_admin_id:str):
-        sql = """
-        INSERT INTO Users(task_name,region,task_admin_id) VALUES(?, ?, ?, ?)
-        """
-        self.execute(sql, parameters=(task_name,region,task_admin_id), commit=True)
-
-
-
-
 def logger(statement):
     print(f"""
 _____________________________________________________        

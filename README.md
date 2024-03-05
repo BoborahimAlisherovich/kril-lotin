@@ -1,17 +1,20 @@
-1. Create virtual environment and install packages
+# Aiogram New Template (aiogram 3) with (sqlite db)
 
-Windows
-python -m venv venv && venv\bin\activate && pip install -r requirements.txt
 
-Linux/Mac
-python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt
+##1. Create virtual environment and install packages
 
-2. Create .env file and copy all variables from .env_example to it and customize your self (if needed)
+###Windows
+```python -m venv venv && venv\bin\activate && pip install -r requirements.txt```
 
-3. Run app.py
+###Linux/Mac
+```python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt```
 
-Windows
-python app.py
+##2. Create .env file and copy all variables from .env_example to it and customize your self (if needed)
 
-Linux/Mac
-python3 app.py
+##3. Run app.py
+
+###Windows
+```python app.py```
+
+###Linux/Mac
+```python3 app.py```

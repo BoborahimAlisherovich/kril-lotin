@@ -1,4 +1,4 @@
-# Aiogram 3 New Template (sqlite db)
+# Lotin-kril loyifasi Aiogram 3 
 
 ### 1. Create virtual environment and install packages
 Windows
